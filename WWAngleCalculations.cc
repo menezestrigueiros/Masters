@@ -114,9 +114,9 @@ void WWAngleCalculationProcessor::processRunHeader( LCRunHeader*  /*run*/) {
   _nEvt = 0;
 }
 
-double WWAngleCalculationProcessor::ScalarProduct(PxPyPzEVector v1, PxPyPzEVector v2){
-  double sp = ( v1.Px()*v2.Px() +  v1.Py()*v2.Py() + v1.Pz()*v2.Pz() + v1.E()*v2.E());
-  return sp;
+double WWAngleCalculationProcessor::magnitude(std::vector<double>& v1){
+  double mag = std::sqrt( v1[0]*v1[0] + v1[1]*v1[1] + v1[2]*v1[2]);
+  return mag;
 }
 
 
@@ -179,18 +179,16 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
   std::vector<int> general_daughters_pdgs = {}; //array with all daughters from e+e-
   std::vector<int> boson_daughters_pdg_array{}; //daughters that come from a W or Z boson
 
-  std::vector<double> w(4); //0,0,0,0
-  std::vector<double> f(4); //0,0,0,0
-  std::vector<double> o(4);
+  std::vector<double> leptonic_w(4); //0,0,0,0
+  std::vector<double> hadronic_w(4); //0,0,0,0
+  std::vector<double> vector_w(4);
   std::vector<double> boost(4);
 
   std::vector<MCParticle*> boson_daughters = {};
-  std::vector<MCParticle*> Wdau = {};
-  std::vector<MCParticle*> general_mcdaughters{}; //save all mc daughters 
 
   ROOT::Math::XYZVector v1(0, 0, 1);
 
-  // BOHDAN ATTEMPTS**************
+  // TEST ATTEMPTS**************
   {
     for(int i = 0; i < col_mcparticles->getNumberOfElements(); i++){
       MCParticle* mc1 = static_cast<MCParticle*> (col_mcparticles->getElementAt(i));
@@ -208,48 +206,56 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
         daughters_pdg = abs(daughters[i]->getPDG());
 
         if (daughters_pdg == 24){ //Explicit MC W boson 4v and charge
-	        MCParticle* wboson = daughters[i];
-	        lv_W1 = PxPyPzEVector(wboson->getMomentum()[0], wboson->getMomentum()[1], wboson->getMomentum()[2], wboson->getEnergy());
-          wcharge = wboson->getCharge();  
-		      lv_W1.GetCoordinates(o.begin(), o.end());
-          
-          if(o[0] != 0){
-            streamlog_out(DEBUG) << "[ON SHELL] W 4v in " << _nEvt << ": [ "; 
-            for (double k = 0; k < 4; k++){
-              streamlog_out(DEBUG) << o[k] << ", ";
-            }
-            streamlog_out(DEBUG) << "]" << endl;
+          MCParticle* wboson = daughters[i];
+          lv_W1 = PxPyPzEVector(wboson->getMomentum()[0], wboson->getMomentum()[1], wboson->getMomentum()[2], wboson->getEnergy());
+          wcharge = wboson->getCharge();
 
-            streamlog_out(DEBUG) << "[ON SHELL] W CHARGE in _nEvt " << _nEvt << ": " << wcharge << endl;
-            _W++;
-            //////////////////////// W- selection //////////////////
+          lv_W1.GetCoordinates(vector_w.begin(), vector_w.end());      
+
+          if(vector_w[0] != 0){
+            {
+              streamlog_out(DEBUG) << "[ON SHELL] W 4v in " << _nEvt << ": [ "; 
+              for (double k = 0; k < 4; k++){
+                streamlog_out(DEBUG) << vector_w[k] << ", ";
+              }
+              streamlog_out(DEBUG) << "]" << endl;
+              streamlog_out(DEBUG) << "[ON SHELL] W CHARGE in _nEvt " << _nEvt << ": " << wcharge << endl;
+            }
             
-            double mag_w = sqrt(o[0]*o[0] + o[1]*o[1] + o[2]*o[2]);
-            double cos_theta2 = o[2]/mag_w;
+            _W++;
+
+            //////////////////////// W- selection //////////////////
+            double mag_w = magnitude(vector_w);
+            double cos_theta2 = vector_w[2]/mag_w;
+
             if(wcharge == -1) _cos_prodw->Fill(cos_theta2);
 
-            //////////// LEPTON DECAY ///////////
+            //////////// LEPTONIC DECAY ///////////
             boson_daughters = wboson->getDaughters();
-            
             for ( long unsigned int l = 0; l < boson_daughters.size(); l++){
               MCParticle* lepton_from_w = boson_daughters[l];
               int lepton_pdg = abs(boson_daughters.at(l)->getPDG());
 
               if(lepton_pdg == 11 || lepton_pdg == 13 || lepton_pdg == 15){
                 lv_leptons_w1 = PxPyPzEVector(lepton_from_w->getMomentum()[0], lepton_from_w->getMomentum()[1], lepton_from_w->getMomentum()[2], lepton_from_w->getEnergy());
+                
                 /////////// DECAY ANGLES //////////
                 transf_lv = starVector(lv_W1, lv_leptons_w1, v1);
                 transf_lv.GetCoordinates(boost.begin(), boost.end());//for debbuging
 
-                double mag_w2 = sqrt(boost[0]*boost[0] + boost[1]*boost[1] + boost[2]*boost[2]);
+                double mag_w2 = magnitude(boost);
                 double cos_theta22 = boost[2]/mag_w2;
 
-                if(wcharge == -1) {
+                if(wcharge == -1){
                   _star_theta->Fill(cos_theta22);
                   _star_phi_minus->Fill(transf_lv.Phi());
+                  _Wleptonic++; //explicit W- that decay leptonically
                 }
 
-                if(wcharge == 1) _star_phi->Fill(transf_lv.Phi());
+                if(wcharge == 1){
+                  _star_phi->Fill(transf_lv.Phi());
+                  _Wleptonic1++; //explicit W+ that decay leptonically
+                }
                 _star_phi_total->Fill(transf_lv.Phi());
               }
 
@@ -257,20 +263,15 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
                 if(wcharge == -1) _Whadronic++; //explicit W- that decay hadronically
                 if(wcharge == 1) _Whadronic1++;//explicit W+ that decay hadronically
               } 
-
-              if((lepton_pdg == 11 || lepton_pdg == 13 || lepton_pdg == 15)){
-                if(wcharge == -1)  _Wleptonic++; //explicit W- that decay leptonically
-                if(wcharge == 1) _Wleptonic1++; //explicit W+ that decay leptonically
-              }
             }
-
           }
- 	      }
+        }
 
         if (daughters_pdg != 24){ // Non-explicit W boson 4v and charge 
+
           if(daughters_pdg < 10){
             quarks = daughters[i];
-            hWcharge = -wcharge;
+            hWcharge = -wcharge; //opposite charge to the explicit W charge 
             lv_hW += PxPyPzEVector(quarks->getMomentum()[0], quarks->getMomentum()[1], quarks->getMomentum()[2], quarks->getEnergy()); //w 4v
             lv_quarks = PxPyPzEVector(quarks->getMomentum()[0], quarks->getMomentum()[1], quarks->getMomentum()[2], quarks->getEnergy()); //leptons 4v
           }else if(daughters_pdg > 10){
@@ -279,76 +280,82 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
             lv_lW += PxPyPzEVector(leptons->getMomentum()[0], leptons->getMomentum()[1], leptons->getMomentum()[2], leptons->getEnergy());
             if(daughters_pdg == 11 || daughters_pdg == 13 || daughters_pdg == 15) lv_leptons = PxPyPzEVector(leptons->getMomentum()[0], leptons->getMomentum()[1], leptons->getMomentum()[2], leptons->getEnergy());
           }
-	      }
-        lv_lW.GetCoordinates(w.begin(), w.end());//for debbuging
-        lv_hW.GetCoordinates(f.begin(), f.end());//for debbuging
+        }
+        lv_lW.GetCoordinates(leptonic_w.begin(), leptonic_w.end()); //for debbuging
+        lv_hW.GetCoordinates(hadronic_w.begin(), hadronic_w.end()); //for debbuging
 
       }
 
-      if(f[0] != 0){
-        streamlog_out(DEBUG) << "[OFFSHELL] W 4v in " << _nEvt << ": [ "; 
-        for (double k = 0; k < 4; k++){
-          streamlog_out(DEBUG) << f[k] << ", ";
+      if(hadronic_w[0] != 0){
+        {
+          streamlog_out(MESSAGE) << "[OFFSHELL] W 4v in " << _nEvt << ": [ "; 
+          for (double k = 0; k < 4; k++){
+            streamlog_out(MESSAGE) << hadronic_w[k] << ", ";
+          }
+          streamlog_out(MESSAGE) << "]" << endl;
+          streamlog_out(MESSAGE) << "[OFFSHELL] hadronic W CHARGE in _nEvt " << _nEvt << ": " << hWcharge << endl;
         }
-        streamlog_out(DEBUG) << "]" << endl;
-        streamlog_out(DEBUG) << "[OFFSHELL] hadro W CHARGE in _nEvt " << _nEvt << ": " << hWcharge << endl;
         _W++;
-        
-
+          
         if(hWcharge == -1){
           _Whadronic++; // non explicit W- that decay hadronically
-          double mag_w = sqrt(f[0]*f[0] + f[1]*f[1]+ f[2]*f[2]);
-          double cos_theta2 = f[2]/mag_w;
+          double mag_w = magnitude(hadronic_w);
+          double cos_theta2 = hadronic_w[2]/mag_w;
           _cos_prodw->Fill(cos_theta2);     
         }
         if(hWcharge == 1) _Whadronic1++ ; // non explicit W- that decay hadronically
-        
       }
-      if(w[0] != 0){
-        streamlog_out(MESSAGE) << "[OFFSHELL] W 4v in " <<_nEvt << ": [ "; 
-        for (double k = 0; k < 4; k++){
-          streamlog_out(MESSAGE) << w[k] << ", ";
+      if(leptonic_w[0] != 0){
+        {
+          streamlog_out(MESSAGE) << "[OFFSHELL] W 4v in " <<_nEvt << ": [ "; 
+          for (double k = 0; k < 4; k++){
+            streamlog_out(MESSAGE) << leptonic_w[k] << ", ";
+          }
+          streamlog_out(MESSAGE) << "]" << endl;
         }
-        streamlog_out(MESSAGE) << "]" << endl;
         _W++;
 
         double inv_mass = lv_lW.M();
+
         streamlog_out(MESSAGE) << "[OFFSHELL] W INV MASS " << inv_mass << endl;
-
         streamlog_out(MESSAGE) << "[OFFSHELL] W LEPTON CHARGE in _nEvt " << _nEvt << ": " << lWcharge << endl;
-
+        
+        //leptons 4v in W rest frame
         transf_lv = starVector(lv_lW, lv_leptons, v1);
         transf_lv.GetCoordinates(boost.begin(), boost.end());//for debbuging
+
         if(lWcharge == 1) _star_phi->Fill(transf_lv.Phi());
-
-        streamlog_out(MESSAGE) << "[LEP] transformed 4v in " << _nEvt << ": [ "; 
-        for (double k = 0; k < 4; k++){
-          streamlog_out(MESSAGE) << boost[k] << ", ";
+        {
+          streamlog_out(MESSAGE) << "[LEP] transformed 4v in " << _nEvt << ": [ "; 
+          for (double k = 0; k < 4; k++){
+            streamlog_out(MESSAGE) << boost[k] << ", ";
+          }
+          streamlog_out(MESSAGE) << "]" << endl;
         }
-        streamlog_out(MESSAGE) << "]" << endl;
-
+        
         if(lWcharge == -1){
           _Wleptonic++;
-          double mag_w = sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
-          double cos_theta2 = w[2]/mag_w;
+          double mag_w = magnitude(leptonic_w);
+          double cos_theta2 = leptonic_w[2]/mag_w;
           _cos_prodw->Fill(cos_theta2);
           /////////// DECAY ANGLES //////////
-          //transf_lv = starVector(lv_lW, lv_leptons, v1);
-          transf_lv.GetCoordinates(boost.begin(), boost.end());//for debbuging
 
-          double mag_w2 = sqrt(boost[0]*boost[0] + boost[1]*boost[1] + boost[2]*boost[2]);
+          transf_lv.GetCoordinates(boost.begin(), boost.end()); //for debbuging
+
+          double mag_w2 = magnitude(boost);
           double cos_theta22 = boost[2]/mag_w2;
+
           _star_theta->Fill(cos_theta22);
           _star_phi_minus->Fill(transf_lv.Phi());
         }
         if(lWcharge == 1) _Wleptonic1++;
         _star_phi_total->Fill(transf_lv.Phi());
       }
-    } else if (daughters.size() == 4){
+    
+    }else if (daughters.size() == 4){
       streamlog_out(MESSAGE) << "/////////////// [4 DAUGHTERS] in _nEvt " << _nEvt << " ///////////////" << endl;
       for(long unsigned int x= 0; x < daughters.size(); x++){
         int daughters_pdg = abs(daughters[x]->getPDG()); //get PDG of each daughter
-        general_mcdaughters.push_back(daughters[x]); //saving mc information of daughters or W or Z
 
         if(daughters_pdg < 10){
           quarks = daughters[x];
@@ -360,33 +367,33 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
           leptons = daughters[x];
           lWcharge += daughters[x]->getCharge();
           hWcharge = -lWcharge;
-          //lWcharge = -hWcharge;
           lv_lW += PxPyPzEVector(leptons->getMomentum()[0], leptons->getMomentum()[1], leptons->getMomentum()[2], leptons->getEnergy());
           if(daughters_pdg == 11 || daughters_pdg == 13 || daughters_pdg == 15) lv_leptons = PxPyPzEVector(leptons->getMomentum()[0], leptons->getMomentum()[1], leptons->getMomentum()[2], leptons->getEnergy());
         }
 
-        lv_lW.GetCoordinates(w.begin(), w.end());//for debbuging
-        lv_hW.GetCoordinates(f.begin(), f.end());//for debbuging
+        lv_lW.GetCoordinates(leptonic_w.begin(), leptonic_w.end());//for debbuging
+        lv_hW.GetCoordinates(hadronic_w.begin(), hadronic_w.end());//for debbuging
       }
 
-      if (w[0] != 0){
-        streamlog_out(MESSAGE) << "[4 DAUGHTERS] W 4v in " <<_nEvt << ": [ "; 
-        for (double k = 0; k < 4; k++){
-          streamlog_out(MESSAGE) << w[k] << ", ";
+      if (leptonic_w[0] != 0){
+        {
+          streamlog_out(MESSAGE) << "[4 DAUGHTERS] W 4v in " <<_nEvt << ": [ "; 
+          for (double k = 0; k < 4; k++){
+            streamlog_out(MESSAGE) << leptonic_w[k] << ", ";
+          }
+          streamlog_out(MESSAGE) << "]" << endl;
+          streamlog_out(DEBUG) << "[CHARGE] LEPTONIC W in _nEvt " << _nEvt << ": " << lWcharge << endl;
         }
-        streamlog_out(MESSAGE) << "]" << endl;
-
+        
         double inv_mass = lv_lW.M();
+
         streamlog_out(MESSAGE) << "[4 DAUGHTERS] W INV MASS: " << inv_mass << endl;
-
-        streamlog_out(DEBUG) << "[CHARGE] LEPTONIC W in _nEvt " << _nEvt << ": " << lWcharge << endl;
-
+        
         _W++;
 
+        /////////// DECAY ANGLES //////////
         transf_lv = starVector(lv_lW, lv_leptons, v1);
         transf_lv.GetCoordinates(boost.begin(), boost.end());//for debbuging
-
-        if(lWcharge == 1) _star_phi->Fill(transf_lv.Phi());
 
         streamlog_out(MESSAGE) << "[LEPTON] TRANSF 4v in " << _nEvt << ": [ "; 
         for (double k = 0; k < 4; k++){
@@ -396,39 +403,48 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
 
         if(lWcharge == -1){
           _Wleptonic++;
-          double mag_w = sqrt(w[0]*w[0] + w[1]*w[1] + w[2]*w[2]);
-          double cos_theta2 = w[2]/mag_w;
+
+          double mag_w = magnitude(leptonic_w);
+          double cos_theta2 = leptonic_w[2]/mag_w;
           _cos_prodw->Fill(cos_theta2);
+
           /////////// DECAY ANGLES //////////
-          //transf_lv = starVector(lv_lW, lv_leptons, v1);
           transf_lv.GetCoordinates(boost.begin(), boost.end());//for debbuging
 
-          double mag_w2 = sqrt(boost[0]*boost[0] + boost[1]*boost[1] + boost[2]*boost[2]);
+          double mag_w2 = magnitude(boost);
           double cos_theta22 = boost[2]/mag_w2;
+
           _star_theta->Fill(cos_theta22);
           _star_phi_minus->Fill(transf_lv.Phi());
         }
-        if(lWcharge == 1) _Wleptonic1++;
+        if(lWcharge == 1){
+          _Wleptonic1++;
+          _star_phi->Fill(transf_lv.Phi());
+        }
         _star_phi_total->Fill(transf_lv.Phi());
       }
-      if (f[0] != 0){
-        streamlog_out(DEBUG) << "[4 DAUGHTERS] W 4v in " << _nEvt << ": [ "; 
-        for (double k = 0; k < 4; k++){
-          streamlog_out(DEBUG) << f[k] << ", ";
+      if (hadronic_w[0] != 0){
+
+        { //debugging
+          streamlog_out(DEBUG) << "[4 DAUGHTERS] W 4v in " << _nEvt << ": [ "; 
+          for (double k = 0; k < 4; k++){
+            streamlog_out(DEBUG) << hadronic_w[k] << ", ";
+          }
+          streamlog_out(DEBUG) << "]" << endl;
         }
-        streamlog_out(DEBUG) << "]" << endl;
         
         _W++;
 
         if(hWcharge == -1){ //fill histogram for W- boson 4v
           _Whadronic++;
-          double mag_w = sqrt(f[0]*f[0] + f[1]*f[1] + f[2]*f[2]);
-          double cos_theta2 = f[2]/mag_w;
+          double mag_w = magnitude(hadronic_w);
+          double cos_theta2 = hadronic_w[2]/mag_w;
           _cos_prodw->Fill(cos_theta2);     
         }
         if(hWcharge == 1) _Whadronic1++ ;
         
       } 
+      
       if (lWcharge != 0)streamlog_out(MESSAGE) << "[CHARGE] LEPTONIC W CHARGE in _nEvt " << _nEvt << ": " << lWcharge << endl;
       if (hWcharge != 0)streamlog_out(MESSAGE) << "[CHARGE] HADRONIC W CHARGE in _nEvt " << _nEvt << ": " << hWcharge << endl; 
     }
