@@ -8,10 +8,10 @@
  *  -  Use starVector -> *theta and *phi
  * 
  * 3) OFF SHELL W reconstructed from it's daughters:
- *  3.1) Discrimination for LEPTONIC and HADRONIC decay (pdg > or < than 10) -> production angle of leptonic Ws
- *  3.2) LEPTONIC FROM ---> W- or W+ (cross check by counting)
- *  3.3) HADRONIC FROM ---> W- or W+ (cross check by counting)
- *  3.4) Use starVector -> *theta and *phi
+ *  -  Discrimination for LEPTONIC and HADRONIC decay (pdg > or < than 10) -> production angle of leptonic Ws
+ *  -  LEPTONIC FROM ---> W- or W+ (cross check by counting)
+ *  -  HADRONIC FROM ---> W- or W+ (cross check by counting)
+ *  -  Use starVector -> *theta and *phi
  * 
  *  @author A.Silva, DESY
  */
