@@ -86,7 +86,7 @@ class WWAngleCalculationProcessor: public Processor {
  TH1F* _star_theta{};
  TH1F* _cos_prodw{};
 
- TH1F* _hBohdan{};
+ TH1F* _hTest{};
 
  //collection names
   std::string _MCParColName{};
