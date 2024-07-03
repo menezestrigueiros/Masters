@@ -6,7 +6,8 @@ PROTOCOL
 1) Goes through MC Particles
   
 2) ON SHELL W has PDG abs(24) -> production angle of leptonic W:
-
+  2.1) Discrimination for LEPTONIC and HADRONIC decay -> GetDaughters() -> GetPDG
+   
 2.1) Discrimination for LEPTONIC and HADRONIC decay -> GetDaughters() -> GetPDG 
 2.2) If this a lepton PDG, this is a leptonic W -> production angle of leptonic Ws
 2.3) Use starVector -> *theta and *phi
