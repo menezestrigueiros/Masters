@@ -327,18 +327,19 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
 
     //////////////////////////////// for reco ////////////////////////////////
     
-    double recow_charge = 0;
     double cosine_photons = 0;
     double chargephotons = 0;
-    double event_charge = 0;
+    
 
+    double recow_charge = 0;
+    double event_charge = 0;
     // loop through isolated muons and photons
     double highest_momentum = 0;
     double highest_momentum_charge = 0;
 
     std::vector<double> isomuon(4);
     PxPyPzEVector lv_iso_muon(0, 0, 0, 0);
-    //charge summation and getting lorentz vector of muon with highest momentum.
+    //charge summation and getting lorentz vector of muon with highest momentum. -> leptonic events were pushed
     for(int i = 0; i < 2; ++i){ 
       for (int j = 0; j < n_parts[i]; ++j){
         EVENT::ReconstructedParticle* isopar = dynamic_cast <EVENT::ReconstructedParticle*>(cols[i]->getElementAt(j));
@@ -358,18 +359,9 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
     }
     //get lorentz vector of muon with highest momentum
     lv_iso_muon.GetCoordinates(isomuon.begin(), isomuon.end());
-
-    for (int i = 0; i < 4; ++i){  // loop through isolated species
-    for (int j = 0; j < n_parts1[i]; ++j){ // loop through all isolated particles
-    EVENT::ReconstructedParticle* par = dynamic_cast <EVENT::ReconstructedParticle*>(cols1[i]->getElementAt(j));
-    lv_IsoCumul += PxPyPzEVector(par->getMomentum()[0], par->getMomentum()[1], par->getMomentum()[2], par->getEnergy()); // sum 4-mom for all particles
-    }
-  }
-
-  
-
     event_charge = recow_charge + chargephotons;
-    //debugging purposes -> two muons on a event would give total charge sum diff from -1 and 1. 
+
+    //debugging purposes -> two muons (leptonic) on a event would give total charge sum diff from -1 and 1. 
     if(n_muons == 2) _muon_count++;
     _charge = event_charge;
 
@@ -456,6 +448,8 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
     _mInvJets = jet4v.M();
     _Wmassjets->Fill(abs(inv_massjet));
 
+    /// ANGLE RECONSTRUCTION ///
+
 
     //4-momentum for all PFOsminusphotons (except those deemed overlay from the categorisation)
     PxPyPzEVector lv_all_pfosmp(0, 0, 0, 0);
@@ -463,8 +457,17 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
       EVENT::ReconstructedParticle* par = dynamic_cast <EVENT::ReconstructedParticle*>(col_pfominusphoton->getElementAt(r));
       lv_all_pfosmp += PxPyPzEVector(par->getMomentum()[0], par->getMomentum()[1], par->getMomentum()[2], par->getEnergy());
     }
+    //store for debbuging
     std::vector<double> reco_hadronic_w(4);
     lv_all_pfosmp.GetCoordinates(reco_hadronic_w.begin(), reco_hadronic_w.end());
+
+    // sum 4-mom for all particles in the event
+    for (int i = 0; i < 4; ++i){  // loop through isolated species
+      for (int j = 0; j < n_parts1[i]; ++j){ // loop through all isolated particles
+        EVENT::ReconstructedParticle* par = dynamic_cast <EVENT::ReconstructedParticle*>(cols1[i]->getElementAt(j));
+        lv_IsoCumul += PxPyPzEVector(par->getMomentum()[0], par->getMomentum()[1], par->getMomentum()[2], par->getEnergy()); 
+      }
+    }
 
 
     // take into account beam crossing angle, get missing momentum and energy
@@ -496,7 +499,6 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
 
       double cos_star_theta = CosineTheta(reco_w);
       //double muonstarphi = reco_transf_lv.Phi();
-      //double muonstarphi = Azimuth(reco_w);
 
       if(event_charge == -1){
         _wminus++;
@@ -506,37 +508,14 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
         _reco_cos_prodw->Fill(cos_star_theta);
 
         /////////// DECAY ANGLES //////////
-        reco_transf_lv.GetCoordinates(recoboost.begin(), recoboost.end()); 
-
-         //for debbuging
-
-
-          streamlog_out(MESSAGE) << "[RECO W] 4v in " << _nEvt << ": [ "; 
-          for (double i = 0; i < 4; i++){
-            streamlog_out(MESSAGE) << reco_w[i] << ", ";
-          }
-          streamlog_out(MESSAGE) << "]" << endl;
-
-          streamlog_out(MESSAGE) << "[MUON] 4v in " << _nEvt << ": [ "; 
-          for (double i = 0; i < 4; i++){
-            streamlog_out(MESSAGE) << isomuon[i] << ", ";
-          }
-          streamlog_out(MESSAGE) << "]" << endl;
-
-          streamlog_out(MESSAGE) << "[TRANSFORMED MUON] 4v in " << _nEvt << ": [ "; 
-          for (double k = 0; k < 4; k++){
-            streamlog_out(MESSAGE) << recoboost[k] << ", ";
-          }
-          streamlog_out(MESSAGE) << "]" << endl;
-        
+        reco_transf_lv.GetCoordinates(recoboost.begin(), recoboost.end());
         
         // polar angle
         double cosprod_mu = CosineTheta(recoboost);
         _reco_startheta->Fill(cosprod_mu);
 
-        // azimuthal angle and folding
-        double muonstarphi = reco_transf_lv.Phi();     
-        _reco_starphi->Fill(muonstarphi);
+        //azimuthal 
+        _reco_starphi->Fill(reco_transf_lv.Phi());
       }
       if(event_charge == 1){
         _not_wminus++;
@@ -554,8 +533,7 @@ void WWAngleCalculationProcessor::processEvent( LCEvent * evt ){
         _reco_startheta_plus->Fill(cosprod_mu);
 
         // azimuthal angle and folding
-        double muonstarphi = reco_transf_lv.Phi();
-        _reco_starphi_plus->Fill(muonstarphi);
+        _reco_starphi_plus->Fill(reco_transf_lv.Phi());
 
       }
     }
@@ -601,7 +579,7 @@ void WWAngleCalculationProcessor::end(){
 
   //RECO
   _TTreeFile->cd("RecoID");
-  
+
   _Wminus_mass->Write();
   _Wplus_mass->Write();
 
