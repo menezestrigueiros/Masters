@@ -1,4 +1,4 @@
-/** Processor calculates MC decay angles from W boson.
+/** Processor calculates decay angles from W boson.
  *  PROTOCOL
  * 1) Goes through MC Particles
  * 
