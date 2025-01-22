@@ -1,0 +1,13 @@
+{
+    "PreSelection": {
+        "Evis": [120.0, 240.0],
+        "pT": 10.0,
+        "misspT": 10.0,
+        "missE": [20.0, 120.0],
+        "mInv": [60.0, 110.0],
+        "nPFOs": [4, 10],
+        "Evis_nonIso":[10, 20],
+        "pT_nonIso": 15.0
+    },
+    "description": "Preselection cuts for the WW analysis"
+}
