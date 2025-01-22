@@ -1,0 +1,14 @@
+executable = /afs/desy.de/group/flc/pool/silvaand/workarea/ILDConfig/StandardConfig/production/BatchJobs/backgrounds/higgs_exc/higgs_exc.sh
+arguments = $(file)
+should_transfer_files = False
+transfer_executable = False
+
+
+request_cpus = 2
+request_memory = 2000 Mb
+
+log = /nfs/dust/ilc/user/silvaand/higgs_exc/l5_o1/log/$(ClusterId)_$(ProcId).log
+output = /nfs/dust/ilc/user/silvaand/higgs_exc/l5_o1/log/$(ClusterId)_$(ProcId).out
+error = /nfs/dust/ilc/user/silvaand/higgs_exc/l5_o1/log/$(ClusterId)_$(ProcId).err
+
+queue file from /afs/desy.de/group/flc/pool/silvaand/workarea/ILDConfig/StandardConfig/production/BatchJobs/backgrounds/higgs_exc/higgs_exc.txt

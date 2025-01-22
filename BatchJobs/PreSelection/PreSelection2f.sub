@@ -1,0 +1,27 @@
+# HTCondor Job Submission File
+
+# Specifies the script to execute on the remote machine.
+# This script contains the job's main instructions.
+executable = /afs/desy.de/group/flc/pool/silvaand/workarea/ILDConfig/StandardConfig/production/BatchJobs/PreSelection/PreSelection2f.sh
+
+# Arguments to be passed to the executable. 
+# $(file) is a placeholder for the file defined in the queue statement below.
+
+arguments = $(file)
+should_transfer_files = False
+transfer_executable = False
+
+# Resource requests
+# Number of CPU cores required for the job.
+request_cpus = 1
+# Amount of memory required for the job (in megabytes).
+request_memory = 2000 Mb
+
+# Log files
+log = /nfs/dust/ilc/user/silvaand/PreSelection_logs/2f/logs/$(ClusterId)_$(ProcId).log
+output = /nfs/dust/ilc/user/silvaand/PreSelection_logs/2f/logs/$(ClusterId)_$(ProcId).out
+error = /nfs/dust/ilc/user/silvaand/PreSelection_logs/2f/logs/$(ClusterId)_$(ProcId).err
+
+# Queueing jobs
+# Submits one job for each line in the specified text file.
+queue file from /afs/desy.de/group/flc/pool/silvaand/workarea/ILDConfig/StandardConfig/production/BatchJobs/PreSelection/PreSelection2f.txt

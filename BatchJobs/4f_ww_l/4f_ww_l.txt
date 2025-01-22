@@ -1,0 +1,6 @@
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500096.P4f_ww_l.eR.pL.n000.d_dstm_15066_0.slcio
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500094.P4f_ww_l.eL.pR.n019.d_dstm_15114_96.slcio
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500094.P4f_ww_l.eL.pR.n019.d_dstm_15114_95.slcio
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500096.P4f_ww_l.eR.pL.n000.d_dstm_15059_1.slcio
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/00015635/000/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500094.P4f_ww_l.eL.pR.n000.d_dstm_15635_0.slcio
+/pnfs/desy.de/ilc/prod/ilc/mc-2020/ild/dst-merged/250-SetA/4f_WW_leptonic/ILD_l5_o1_v02/v02-02/00015635/000/rv02-02.sv02-02.mILD_l5_o1_v02.E250-SetA.I500094.P4f_ww_l.eL.pR.n000.d_dstm_15635_1.slcio
