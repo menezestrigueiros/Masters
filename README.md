@@ -1,6 +1,6 @@
 ## 🧪 MSc Project Repository
 
-This repository contains a set of C++/ROOT based tools to perform detector-driven physics studies with Monte-Carlo samples fully simulated with the International Large Detector (ILD) Geometry .
+This repository contains a set of C++/ROOT based tools to perform detector-driven physics studies with Monte-Carlo samples fully simulated with the International Large Detector (ILD) Geometry.
 
 These tools were integrated into the **ILCSoft Marlin** framework and tested on simulated datasets using the NAF cluster @ Deutsches Elektronen-Synchrotron (DESY). The work aims to contribute to improved signal reconstruction strategies for future lepton collider experiments, such as the ILC.
 
@@ -16,8 +16,8 @@ A steering file with two main core tools for my MSc research project:
 
 ### ⚙️ Supplementary Tools
 
-- **Shell Scripts for HTCondor Automation**  
+- **Shell Scripts for HTCondor Automation**:
   Scripts for submitting and managing large-scale batch jobs using HTCondor. These jobs were used to generate and process additional MC samples with `WWCategorisationProcessor`, covering the full Standard Model background at √s = **250 GeV**.
 
-- **ROOT Macros for Efficiency Optimization**  
+- **ROOT Macros for Efficiency Optimization**:  
   A set of analysis macros to visualize output, evaluate categorization performance and refine channel-based selections. These tools were used to further improve selection efficiency across different topologies.
