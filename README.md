@@ -1,4 +1,4 @@
-# 🧪 MSc Project Repository
+## 🧪 MSc Project Repository
 
 This repository contains a set of C++/ROOT based tools to perform detector-driven physics studies with Monte-Carlo samples fully simulated with the International Large Detector (ILD) Geometry .
 
@@ -9,9 +9,9 @@ These tools were integrated into the **ILCSoft Marlin** framework and tested on 
 
 ## 📋 Features
 A steering file with two main core tools for my MSc research project:
-- **WWAngleCalculationProcessor**:
+- `WWAngleCalculationProcessor`:
   Module for the reconstruction of on-shell and off-shell W bosons and their decay angles (**θ**, **φ**) for all 4f channels. 
-- **WWCategorisationProcessor**:
+- `WWCategorisationProcessor`:
   A classification tool that labels each 4f WW(W) event according to its decay channel topology (fully leptonic, fully hadronic, semi-leptonic), supporting systematic studies of event selection and efficiency in detector-level analyses.
 
 ## ⚙️ Supplementary Tools
