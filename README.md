@@ -5,7 +5,7 @@ This repository contains a set of C++/ROOT based tools to perform detector-drive
 These tools were integrated into the **ILCSoft Marlin** framework and tested on simulated datasets using the NAF cluster @ Deutsches Elektronen-Synchrotron (DESY). The work aims to contribute to improved signal reconstruction strategies for future lepton collider experiments, such as the ILC.
 
 📄 This work was carried out as part of my MSc thesis: 
-**"Event Selection and Angular Reconstruction for W Boson Events at Future e+e− Colliders"**[Thesis](https://bib-pubdb1.desy.de/record/619472/)
+**"Event Selection and Angular Reconstruction for W Boson Events at Future e+e− Colliders"**[[Thesis]](https://bib-pubdb1.desy.de/record/619472/)
 
 ## 📋 Features
 A steering file with two main core tools for my MSc research project:
